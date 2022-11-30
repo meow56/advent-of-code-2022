@@ -1,6 +1,9 @@
 "use strict";
 
 window.onload = function() {
+	let date = new Date();
+	let day = date.getMonth() !== 11 ? 25 : date.getDate();
+	document.getElementById("dayNum").value = Math.min(day, 25);
 	document.getElementById("input").addEventListener("change", handleFiles, false);
 }
 
