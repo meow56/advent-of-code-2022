@@ -2,6 +2,7 @@
 
 window.onload = function() {
 	let date = new Date();
+	date.setUTCHours(date.getUTCHours() - 5); // Time zones :(
 	let day = date.getMonth() !== 11 ? 25 : date.getDate();
 	document.getElementById("dayNum").value = Math.min(day, 25);
 	document.getElementById("input").addEventListener("change", handleFiles, false);
