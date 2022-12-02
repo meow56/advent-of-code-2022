@@ -19,7 +19,7 @@ function day1(input) {
 	}, 0);
 	displayText(`Elf Preparedness Leaderboard/First Line of Defense Against the Hunger`);
 	for(let i = 0; i < totals.length; i++) {
-		displayText(`${(i + 1).toString().padStart(totals.length.toString().length)}. Elf ${totals[i][1].toString().padStart(totals.length.toString().length)} with ${totals[i][2].toString().padStart(2)} ${totals[i][2] === 1 ? "snack " : "snacks"} totaling ${totals[i][0].toString().padStart(totals[0][0].toString().length)} calories`);
+		displayText(`${(i + 1).toString().padStart(totals.length.toString().length)}. Elf ${totals[i][1].toString().padStart(totals.length.toString().length)} with ${totals[i][2].toString().padStart(2)} ${totals[i][2] === 1 ? "snack " : "snacks"} totaling ${totals[i][0].toString().padStart(totals[0][0].toString().length)} Calories`);
 	}
 	displayCaption(`The max calorie amount is ${maxVals[0]}.`);
 	displayCaption(`The sum of the max calorie amounts is ${maxSum}.`);
