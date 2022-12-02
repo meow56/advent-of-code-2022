@@ -22,7 +22,7 @@ function displayText(text = "") {
 	display.textContent += text + "\n";
 }
 
-function updateCaption(text = "") {
+function displayCaption(text = "") {
 	const caption = document.getElementById("caption");
 	caption.textContent += text + "\n";
 }

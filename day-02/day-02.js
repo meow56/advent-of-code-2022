@@ -48,8 +48,8 @@ function day2(input) {
 	}
 	let totalScore = scores.reduce((acc, val) => acc + val, 0);
 	let trueScore = realScores.reduce((acc, val) => acc + val, 0);
-	updateCaption(`The total score is ${totalScore}.`);
-	updateCaption(`The REAL total score is ${trueScore}.`);
-	updateCaption(`The strategy guide is shown in a table.`);
-	updateCaption(`The columns are, from left to right: the round number, the opponent's play, the outcome of the match, and the score of the round.`);
+	displayCaption(`The total score is ${totalScore}.`);
+	displayCaption(`The REAL total score is ${trueScore}.`);
+	displayCaption(`The strategy guide is shown in a table.`);
+	displayCaption(`The columns are, from left to right: the round number, the opponent's play, the outcome of the match, and the score of the round.`);
 }
