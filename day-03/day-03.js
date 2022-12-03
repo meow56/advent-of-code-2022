@@ -17,5 +17,19 @@ function day3(input) {
 			total += result.charCodeAt() - "A".charCodeAt() + 27;
 		}
 	});
+	let badgeTotal = 0;
+	rucksacks.forEach(function(rucksack, index, rucksacks) {
+		if(index % 3 !== 0) return;
+		let regex = new RegExp(`[${rucksack.join("")}]`, 'g');
+		let interResult = rucksacks[index + 1].join("").match(regex);
+		regex = new RegExp(`[${interResult.join("")}]`);
+		let finalResult = rucksacks[index + 2].join("").match(regex)[0];
+		if(finalResult.charCodeAt() >= "a".charCodeAt()) {
+			badgeTotal += finalResult.charCodeAt() - "a".charCodeAt() + 1;
+		} else {
+			badgeTotal += finalResult.charCodeAt() - "A".charCodeAt() + 27;
+		}
+	});
 	displayCaption(`The total score is ${total}`);
+	displayCaption(`The total badge score is ${badgeTotal}`);
 }
