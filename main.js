@@ -19,7 +19,7 @@ function handleFiles() {
 
 function displayText(text = "") {
 	const display = document.getElementById("display");
-	display.textContent += text + "\n";
+	display.innerHTML += text + "\n";
 }
 
 function displayCaption(text = "") {
