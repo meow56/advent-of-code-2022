@@ -1,7 +1,11 @@
-.wrong {
+.wrong, .red {
 	background-color: red;
 }
 
-.badge {
+.badge, .yellow {
 	background-color: yellow;
+}
+
+.orange {
+	background-color: orange;
 }
