@@ -1,19 +1,19 @@
 "use strict";
 
 function day6(input) {
-	let currWindow = [input[0], input[1], input[2], input[3]];
-	function isRepeating() {
-		return currWindow[0] === currWindow[1] || currWindow[0] === currWindow[2] || currWindow[0] === currWindow[3]
-			|| currWindow[1] === currWindow[2] || currWindow[1] === currWindow[3]
-			|| currWindow[2] === currWindow[3];
-	}
-	for(let index = 4; index < input.length; index++) {
-		console.log(currWindow);
-		if(!isRepeating()) {
-			displayCaption(`Found it at ${index}.`);
-			break;
+	function findFirstUnique(size) {
+		for(let i = size - 1; i < input.length; i++) {
+			let start = i - size + 1;
+			let theWindow = input.slice(start, i + 1);
+			let uniqueTest = new Set(theWindow);
+			if(uniqueTest.size === size) {
+				displayCaption(`First unique run of ${size} at ${i + 1}.`);
+				return;
+			}
 		}
-		currWindow.push(input[index]);
-		currWindow.shift();
+		displayCaption(`No unique run of ${size} found.`);
 	}
+
+	findFirstUnique(4);
+	findFirstUnique(14);
 }
