@@ -52,35 +52,61 @@ function day7(input) {
 
 	let totalAtMost100000 = 0;
 	let currFreeMemory;
-	function computeDirSize(dir, part2 = false) {
+	function computeDirSize(dir) {
 		let filesAndDirs = Object.entries(currFileSystem(dir));
 		let dirSize = 0;
 		for(const [key, value] of filesAndDirs) {
 			if(typeof value === "number") {
 				dirSize += value;
 			} else {
-				dirSize += computeDirSize([...dir, key], part2);
+				dirSize += computeDirSize([...dir, key]);
 			}
 		}
-		if(dirSize <= 100000 && !part2) {
+		if(dirSize <= 100000) {
 			totalAtMost100000 += dirSize;
 		}
 		if(dir.length === 1) {
 			// then it's /
 			currFreeMemory = totalMemory - dirSize;
 		}
-		if(part2) {
-			if(dirSize >= freeMem && dirSize < currentClosest) {
-				currentClosest = dirSize;
-			}
-		}
+		currFileSystem(dir).size1 = dirSize; // just to make sure that there's no collision
 		return dirSize;
 	}
 
+	function getSizeList(dir, currList) {
+		let filesAndDirs = Object.entries(currFileSystem(dir));
+		currList.push(currFileSystem(dir).size1);
+		for(const [key, value] of filesAndDirs) {
+			if(typeof value === "object") {
+				currList = getSizeList([...dir, key], currList);
+			}
+		}
+		return currList;
+	}
+
 	computeDirSize([]);
-	displayText(`Total is ${totalAtMost100000}.`);
 	const freeMem = updateMemory - currFreeMemory;
-	let currentClosest = 1e308;
-	computeDirSize([], true);
-	displayText(`Memory to free is ${currentClosest}.`);
+	let sizeList = getSizeList([], []);
+	sizeList = sizeList.filter(val => val >= freeMem);
+	let currentClosest = Math.min(...sizeList);
+	displayCaption(`Total is ${totalAtMost100000}.`);
+	displayCaption(`Memory to free is ${currentClosest}.`);
+	displayCaption(`The file system is displayed.`);
+	displayCaption(`It mostly follows the format on the site.`);
+	displayCaption(`However, directories also display their size.`);
+
+	function displayFileSystem(dir) {
+		let filesAndDirs = Object.entries(currFileSystem(dir));
+		let fileIndent = "  ".repeat(dir.length - 1) + "- ";
+		let directoryText = `${fileIndent}${dir[dir.length - 1]} (dir, size=${currFileSystem(dir).size1})`;
+		displayText(directoryText);
+		for(const [key, value] of filesAndDirs) {
+			if(typeof value === "object") {
+				displayFileSystem([...dir, key]);
+			} else if(!key.endsWith("1")) {
+				displayText(`  ${fileIndent}${key} (file, size=${value})`);
+			}
+		}
+	}
+	displayFileSystem(["/"]);
 }
