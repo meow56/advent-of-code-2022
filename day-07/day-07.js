@@ -1,35 +1,15 @@
 "use strict";
 
 function day7(input) {
-// 	input = `$ cd /
-// $ ls
-// dir a
-// 14848514 b.txt
-// 8504156 c.dat
-// dir d
-// $ cd a
-// $ ls
-// dir e
-// 29116 f
-// 2557 g
-// 62596 h.lst
-// $ cd e
-// $ ls
-// 584 i
-// $ cd ..
-// $ cd ..
-// $ cd d
-// $ ls
-// 4060174 j
-// 8033020 d.log
-// 5626152 d.ext
-// 7214296 k`;
 	const DIRECTORY_REGEX = /.+/g;
 	let commands = [];
 	let fileSystem = {};
 	fileSystem["/"] = {};
 	let currentDir = [];
 	let entry;
+
+	const totalMemory = 70000000;
+	const updateMemory = 30000000;
 
 	function currFileSystem(currDir = currentDir) {
 		let trueFileSys = fileSystem;
@@ -71,23 +51,36 @@ function day7(input) {
 	console.log(fileSystem);
 
 	let totalAtMost100000 = 0;
-	function computeDirSize(dir) {
+	let currFreeMemory;
+	function computeDirSize(dir, part2 = false) {
 		let filesAndDirs = Object.entries(currFileSystem(dir));
 		let dirSize = 0;
 		for(const [key, value] of filesAndDirs) {
 			if(typeof value === "number") {
 				dirSize += value;
 			} else {
-				dirSize += computeDirSize([...dir, key]);
+				dirSize += computeDirSize([...dir, key], part2);
 			}
 		}
-		if(dirSize <= 100000) {
+		if(dirSize <= 100000 && !part2) {
 			totalAtMost100000 += dirSize;
 		}
-		console.log(`Size of dir ${dir.join("_")} is ${dirSize}.`);
+		if(dir.length === 1) {
+			// then it's /
+			currFreeMemory = totalMemory - dirSize;
+		}
+		if(part2) {
+			if(dirSize >= freeMem && dirSize < currentClosest) {
+				currentClosest = dirSize;
+			}
+		}
 		return dirSize;
 	}
 
 	computeDirSize([]);
 	displayText(`Total is ${totalAtMost100000}.`);
+	const freeMem = updateMemory - currFreeMemory;
+	let currentClosest = 1e308;
+	computeDirSize([], true);
+	displayText(`Memory to free is ${currentClosest}.`);
 }
