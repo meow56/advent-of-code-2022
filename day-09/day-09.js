@@ -8,67 +8,74 @@ function day9(input) {
 		entry = entry[0].split(" ");
 		instructions.push([entry[0], +entry[1]]);
 	}
-	let headPos = [0, 0];
-	let tailPos = [0, 0];
-	let visited = new Set(["0,0"]);
 
-	function calcManDist() {
-		return Math.abs(headPos[0] - tailPos[0]) + Math.abs(headPos[1] - tailPos[1]);
-	}
+	function Knot(head) {
+		this.pos = [0, 0];
+		this.visited = new Set(["0,0"]);
+		this.head = head;
+		this.tail;
 
-	function isFarAway() {
-		let manDist = calcManDist();
-		if(manDist === 3) return true;
-		if(manDist === 2 && (headPos[0] === tailPos[0] || headPos[1] === tailPos[1])) return true;
-		return false; 
-	}
+		this.calcManDist = function() {
+			return Math.abs(this.head.pos[0] - this.pos[0]) + Math.abs(this.head.pos[1] - this.pos[1]);
+		}
 
-	function moveTail() {
-		if(isFarAway()) {
-			if(calcManDist() === 2) {
-				// Just move toward head!
-				if(headPos[0] === tailPos[0]) {
-					tailPos[1] += Math.sign(headPos[1] - tailPos[1]);
-				} else {
-					tailPos[0] += Math.sign(headPos[0] - tailPos[0]);
+		this.isFarAway = function() {
+			let manDist = this.calcManDist();
+			if(manDist >= 3) return true;
+			return manDist === 2 && (this.head.pos[0] === this.pos[0] || this.head.pos[1] === this.pos[1]);
+		}
+
+		this.move = function(instruction) {
+			if(!this.head) {
+				let toChange, direction;
+				switch(instruction[0]) {
+				case "U":
+					toChange = 1;
+					direction = 1;
+					break;
+				case "D":
+					toChange = 1;
+					direction = -1;
+					break;
+				case "L":
+					toChange = 0;
+					direction = -1;
+					break;
+				case "R":
+					toChange = 0;
+					direction = 1;
+					break;
+				}
+				for(let i = 0; i < instruction[1]; i++) {
+					this.pos[toChange] += direction;
+					this.tail.move();
 				}
 			} else {
-				tailPos[0] += Math.sign(headPos[0] - tailPos[0]);
-				tailPos[1] += Math.sign(headPos[1] - tailPos[1]);
+				if(this.isFarAway()) {
+					this.pos[0] += Math.sign(this.head.pos[0] - this.pos[0]);
+					this.pos[1] += Math.sign(this.head.pos[1] - this.pos[1]);
+					this.visited.add(this.pos.toString());
+					if(this.tail) {
+						this.tail.move();
+					}
+				}
 			}
-			visited.add(tailPos.toString());
 		}
 	}
 
-	function moveHead(instruction) {
-		let toChange, direction;
-		switch(instruction[0]) {
-		case "U":
-			toChange = 1;
-			direction = 1;
-			break;
-		case "D":
-			toChange = 1;
-			direction = -1;
-			break;
-		case "L":
-			toChange = 0;
-			direction = -1;
-			break;
-		case "R":
-			toChange = 0;
-			direction = 1;
-			break;
-		}
-		for(let i = 0; i < instruction[1]; i++) {
-			headPos[toChange] += direction;
-			moveTail();
-		}
+	let head = new Knot();
+	let tails = [];
+	for(let i = 0; i < 9; i++) {
+		tails.push(new Knot(i === 0 ? head : tails[i - 1]));
 	}
-
+	for(let i = 0; i < tails.length - 1; i++) {
+		tails[i].tail = tails[i + 1];
+	}
+	head.tail = tails[0];
 	for(let i = 0; i < instructions.length; i++) {
-		moveHead(instructions[i]);
+		head.move(instructions[i]);
 	}
 
-	displayCaption(`Visited ${visited.size} coords with the tail.`);
+	displayCaption(`Visited ${tails[0].visited.size} coords with the first tail.`);
+	displayCaption(`Visited ${tails[tails.length - 1].visited.size} coords with the last tail.`);
 }
