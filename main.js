@@ -13,6 +13,8 @@ window.onload = function() {
 function handleFiles() {
 	clearText();
 	clearCaption();
+	clearBlocks();
+	clearButtons();
 	const input = this.files[0];
 	input.text().then(text => window["day" + document.getElementById("dayNum").value](text));
 }
@@ -37,22 +39,37 @@ function clearCaption() {
 	caption.textContent = "";
 }
 
-function assignBlock(id) {
-	const display = document.getElementById("display");
-	if(document.getElementById(id) !== null) {
-		throw `A block with ID ${id} already exists.`;
+function blockClosure() {
+	const blocks = [];
+	function assignBlock(id) {
+		const display = document.getElementById("display");
+		if(document.getElementById(id) !== null) {
+			throw `A block with ID ${id} already exists.`;
+		}
+		let NEW_PRE = document.createElement("PRE");
+		NEW_PRE.id = id;
+		NEW_PRE.displayText = function(text = "") {
+			this.textContent += text + "\n";
+		}.bind(NEW_PRE);
+		NEW_PRE.clearText = function() {
+			this.textContent = "";
+		}.bind(NEW_PRE);
+		display.parentNode.appendChild(NEW_PRE);
+		blocks.push(NEW_PRE);
+		return NEW_PRE;
 	}
-	let NEW_PRE = document.createElement("PRE");
-	NEW_PRE.id = id;
-	NEW_PRE.displayText = function(text = "") {
-		this.textContent += text + "\n";
-	}.bind(NEW_PRE);
-	NEW_PRE.clearText = function() {
-		this.textContent = "";
-	}.bind(NEW_PRE);
-	display.parentNode.appendChild(NEW_PRE);
-	return NEW_PRE;
+
+	function clearBlocks() {
+		const parent = document.getElementById("display").parentNode;
+		while(blocks.length !== 0) {
+			parent.removeChild(blocks.pop());
+		}
+	}
+
+	return [assignBlock, clearBlocks];
 }
+
+var [assignBlock, clearBlocks] = blockClosure();
 
 function assignButton(callback, text) {
 	const buttons = document.getElementById("buttons");
@@ -61,4 +78,12 @@ function assignButton(callback, text) {
 	NEW_BUTTON.onclick = callback;
 	buttons.appendChild(NEW_BUTTON);
 	return NEW_BUTTON;
+}
+
+function clearButtons() {
+	const buttons = document.getElementById("buttons");
+	let button;
+	while(button = buttons.firstChild) {
+		buttons.removeChild(button);
+	}
 }
