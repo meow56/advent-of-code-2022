@@ -1,6 +1,7 @@
 "use strict";
 
 function day12(input) {
+	// 272 too low.
 	const FILE_REGEX = /[a-z]|S|E/g;
 	let nodes = [];
 	let entry;
@@ -40,7 +41,6 @@ function day12(input) {
 		this.pos = position;
 		this.neighbors = [];
 		this.depth = Number.MAX_SAFE_INTEGER;
-		this.parent;
 		this.color = 0; // 0: White, 1: Grey, 2: Black
 
 		this.initNeighbors = function() {
@@ -77,15 +77,23 @@ function day12(input) {
 
 	getNode(startPos).depth = 0;
 
-	function search() {
-		let queue = [getNode(startPos)];
+	function resetNodes(start) {
+		for(let node of nodes) {
+			node.depth = Number.MAX_SAFE_INTEGER;
+			node.color = 0;
+		}
+		start.depth = 0;
+	}
+
+	function search(start = getNode(startPos)) {
+		resetNodes(start);
+		let queue = [start];
 		while(queue.length !== 0) {
 			let nextNode = queue.shift();
 			for(let neighbor of nextNode.neighbors) {
 				if(neighbor.color === 0) {
 					neighbor.color = 1;
 					neighbor.depth = nextNode.depth + 1;
-					neighbor.parent = nextNode;
 					queue.push(neighbor);
 				}
 			}
@@ -94,5 +102,14 @@ function day12(input) {
 		return getNode(endPos).depth;
 	}
 
-	displayCaption(`Shortest path is length ${search()}.`);
+	let finalDepth = search();
+	let scenicCandidates = [];
+	for(let node of nodes) {
+		if(node.height === 0) {
+			scenicCandidates.push(search(node));
+		}
+	}
+
+	displayCaption(`Shortest path is length ${finalDepth}.`);
+	displayCaption(`Scenic path is length ${Math.min(...scenicCandidates)}.`);
 }
