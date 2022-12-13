@@ -7,9 +7,42 @@ function day13(input) {
 		if(packet.length === 0) {
 			pairs.push([]);
 		} else {
-			let newArray = Function("return " + packet + ";");
-			pairs[pairs.length - 1].push(newArray());
+			let newArray = arrayFromString(packet);
+			pairs[pairs.length - 1].push(newArray);
 		}
+	}
+
+	function arrayFromString(str) {
+		let newArr = [];
+		str = str.slice(1, -1);
+		for(let i = 0; i < str.length; i++) {
+			if(!Number.isNaN(+str[i])) {
+				let num = "";
+				while(!Number.isNaN(+str[i])) {
+					num += str[i];
+					i++;
+				}
+				newArr.push(+num);
+			} else if(str[i] === "[") {
+				let arrStart = i;
+				let arrEnd;
+				let bracketStack = 0;
+				for(let j = i + 1; j < str.length; j++) {
+					if(str[j] === "[") {
+						bracketStack++;
+					} else if(str[j] === "]") {
+						bracketStack--;
+						if(bracketStack === -1) {
+							arrEnd = j + 1;
+							break;
+						}
+					}
+				}
+				newArr.push(arrayFromString(str.slice(arrStart, arrEnd)));
+				i = arrEnd;
+			}
+		}
+		return newArr;
 	}
 
 	function deepCopy(arr) {
@@ -25,61 +58,39 @@ function day13(input) {
 	}
 
 	function comparePairs(first, second) {
-		console.groupCollapsed(`Comparing ${first} and ${second}`);
 		first = deepCopy(first);
 		second = deepCopy(second);
 		while(first.length !== 0 && second.length !== 0) {
 			let firstElem = first.shift();
 			let secondElem = second.shift();
-			console.log(`Comparing elems ${firstElem} and ${secondElem}`);
 			if(typeof firstElem === "number" && typeof secondElem === "number") {
-				console.log(`Both elems are numbers.`);
 				if(firstElem > secondElem) {
-					console.log(`${firstElem} > ${secondElem}.`);
-					console.groupEnd();
 					return false;
 				} else if(secondElem > firstElem) {
-					console.log(`${firstElem} < ${secondElem}.`);
-					console.groupEnd();
 					return true;
 				}
 			} else if(typeof firstElem === "object" && typeof secondElem === "object") {
-				console.log(`Both elems are arrays.`);
 				let result = comparePairs(firstElem, secondElem);
 				if(result !== undefined) {
-					console.log(`Sub-lists ${result ? "were" : "were not"} sorted correctly.`);
-					console.groupEnd();
 					return result;
 				}
 			} else if(typeof firstElem === "number") {
-				console.log(`The first elem is a number.`);
 				let result = comparePairs([firstElem], secondElem);
 				if(result !== undefined) {
-					console.log(`Sub-lists ${result ? "were" : "were not"} sorted correctly.`);
-					console.groupEnd();
 					return result;
 				}
 			} else {
-				console.log(`The second elem is a number.`);
 				let result = comparePairs(firstElem, [secondElem]);
 				if(result !== undefined) {
-					console.log(`Sub-lists ${result ? "were" : "were not"} sorted correctly.`);
-					console.groupEnd();
 					return result;
 				}
 			}
 		}
 		if(first.length === second.length) {
-			console.log(`Conclusion: Equal.`);
-			console.groupEnd();
 			return undefined;
 		} else if(first.length === 0) {
-			console.log(`First array is shorter.`);
-			console.groupEnd();
 			return true;
 		} else {
-			console.log(`Second array is shorter.`);
-			console.groupEnd();
 			return false;
 		}
 	}
@@ -110,4 +121,30 @@ function day13(input) {
 		}
 	}
 	displayCaption(`The decoder key is ${indexOf2 * indexOf6}.`);
+	displayCaption(`The packets are listed in sorted order, with their indices given.`);
+	displayCaption(`The packets [[2]] and [[6]] are highlighted using <strong> elements.`);
+
+	function stringFromArray(arr) {
+		if(arr.length === 0) return "[]";
+		let newStr = "[";
+		for(let i = 0; i < arr.length; i++) {
+			if(typeof arr[i] === "number") {
+				newStr += arr[i] + ", ";
+			} else {
+				newStr += stringFromArray(arr[i]) + ", ";
+			}
+		}
+		newStr = newStr.slice(0, -2);
+		// remove the last ", "
+		newStr += "]";
+		return newStr;
+	}
+
+	for(let i = 0; i < pairs.length; i++) {
+		if(i + 1 === indexOf2 || i + 1 === indexOf6) {
+			displayText(`<strong>${(i + 1).toString().padStart(3)}: ${stringFromArray(pairs[i])}</strong>`);
+		} else {
+			displayText(`${(i + 1).toString().padStart(3)}: ${stringFromArray(pairs[i])}`);
+		}
+	}
 }
