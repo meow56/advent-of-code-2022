@@ -94,4 +94,20 @@ function day13(input) {
 		}
 	}
 	displayCaption(`The correctly ordered pairs sum to ${sum}.`);
+
+	pairs = pairs.flat(1);
+	pairs.push([[2]]);
+	pairs.push([[6]]);
+	pairs.sort((a, b) => comparePairs(a, b) ? -1 : 1);
+	let indexOf2, indexOf6;
+	for(let i = 0; i < pairs.length; i++) {
+		if(pairs[i].length === 1 && pairs[i][0].length === 1 && pairs[i][0][0] === 2) {
+			indexOf2 = i + 1;
+		}
+		if(pairs[i].length === 1 && pairs[i][0].length === 1 && pairs[i][0][0] === 6) {
+			indexOf6 = i + 1;
+			break;
+		}
+	}
+	displayCaption(`The decoder key is ${indexOf2 * indexOf6}.`);
 }
