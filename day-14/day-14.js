@@ -41,6 +41,10 @@ function day14(input) {
 	for(let entry of filledPoints) {
 		filledCopy.add(entry);
 	}
+	let filledCopyCopy = new Set();
+	for(let entry of filledPoints) {
+		filledCopyCopy.add(entry);
+	}
 
 	const SAND_ENTRY = [500, 0];
 	let sandCount = 0;
@@ -55,7 +59,7 @@ function day14(input) {
 				// into the void.
 				return true;
 			}
-			if(part2 && testPos[1] === lowestY) {
+			if(part2 && testPos[1] === lowestY + 2) {
 				// hit the floor.
 				break;
 			}
@@ -80,19 +84,89 @@ function day14(input) {
 			}
 		} while(didFall)
 		sandCount++;
-		if(currPosition[0] === 500 && currPosition[1] === 0) return true;
 		pointsSet.add(currPosition.join());
+		if(currPosition[0] === 500 && currPosition[1] === 0) return true;
 	}
 
 	while(!fall(filledPoints)) {
-		console.log(`The clock is ticking. Sand ${sandCount}.`);
 	}
 
 	displayCaption(`In total, ${sandCount} sand settled before falling into the abyss.`);
 	sandCount = 0;
-	lowestY += 2;
 	while(!fall(filledCopy, true)) {
-		console.log(`Best hurry. Sand ${sandCount}.`);
 	}
 	displayCaption(`Now that conservation of mass isn't being violated, ${sandCount} sand settled.`);
+
+	let minX = Number.MAX_SAFE_INTEGER;
+	let minY = 0; // This is known.
+	let maxX = Number.MIN_SAFE_INTEGER;
+	let maxY = lowestY + 1; // This is also known.
+	for(let point of filledPoints) {
+		let pointX = +(point.split(",")[0]);
+		minX = Math.min(minX, pointX);
+		maxX = Math.max(maxX, pointX);
+	}
+
+	let part1Board = [];
+	for(let y = minY; y <= maxY; y++) {
+		let displayLine = "";
+		for(let x = minX; x <= maxX; x++) {
+			if(filledCopyCopy.has(`${x},${y}`)) {
+				displayLine += "█";
+			} else if(filledPoints.has(`${x},${y}`)) {
+				displayLine += "░";
+			} else {
+				displayLine += " ";
+			}
+		}
+		part1Board.push(displayLine);
+	}
+
+	minX = Number.MAX_SAFE_INTEGER;
+	maxX = Number.MIN_SAFE_INTEGER;
+	for(let point of filledCopy) {
+		let pointX = +(point.split(",")[0]);
+		minX = Math.min(minX, pointX);
+		maxX = Math.max(maxX, pointX);
+	}
+
+	let part2Board = [];
+	for(let y = minY; y <= maxY; y++) {
+		let displayLine = "";
+		for(let x = minX; x <= maxX; x++) {
+			if(filledCopyCopy.has(`${x},${y}`)) {
+				displayLine += "█";
+			} else if(filledCopy.has(`${x},${y}`)) {
+				displayLine += "░";
+			} else {
+				displayLine += " ";
+			}
+		}
+		part2Board.push(displayLine);
+	}
+	part2Board.push("█".repeat(maxX - minX + 1));
+
+	function p12ButtonClosure() {
+		let isPart1 = false;
+
+		function switchParts() {
+			isPart1 = !isPart1;
+			clearText();
+			if(isPart1) {
+				for(let line of part1Board) {
+					displayText(line);
+				}
+			} else {
+				for(let line of part2Board) {
+					displayText(line);
+				}
+			}
+		}
+
+		return switchParts;
+	}
+
+	let func1 = p12ButtonClosure();
+	let button1 = assignButton(func1, "Switch Part");
+	func1();
 }
