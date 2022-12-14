@@ -37,33 +37,42 @@ function day14(input) {
 		}
 	}
 
+	let filledCopy = new Set();
+	for(let entry of filledPoints) {
+		filledCopy.add(entry);
+	}
+
 	const SAND_ENTRY = [500, 0];
 	let sandCount = 0;
-	function fall() {
+	function fall(pointsSet, part2 = false) {
 		let didFall = false;
 		let currPosition = SAND_ENTRY.slice();
 		do {
 			didFall = false;
 			let testPos = currPosition.slice();
 			testPos[1]++;
-			if(testPos[1] > lowestY) {
+			if(!part2 && testPos[1] > lowestY) {
 				// into the void.
 				return true;
 			}
-			if(!filledPoints.has(testPos.join())) {
+			if(part2 && testPos[1] === lowestY) {
+				// hit the floor.
+				break;
+			}
+			if(!pointsSet.has(testPos.join())) {
 				currPosition[1]++;
 				didFall = true;
 				continue;
 			}
 			testPos[0]--;
-			if(!filledPoints.has(testPos.join())) {
+			if(!pointsSet.has(testPos.join())) {
 				currPosition[1]++;
 				currPosition[0]--;
 				didFall = true;
 				continue;
 			}
 			testPos[0] += 2;
-			if(!filledPoints.has(testPos.join())) {
+			if(!pointsSet.has(testPos.join())) {
 				currPosition[1]++;
 				currPosition[0]++;
 				didFall = true;
@@ -71,13 +80,19 @@ function day14(input) {
 			}
 		} while(didFall)
 		sandCount++;
-		filledPoints.add(currPosition.join());
+		if(currPosition[0] === 500 && currPosition[1] === 0) return true;
+		pointsSet.add(currPosition.join());
 	}
 
-	while(!fall()) {
+	while(!fall(filledPoints)) {
 		console.log(`The clock is ticking. Sand ${sandCount}.`);
 	}
 
-	displayCaption(`In total, ${sandCount} sand settled before falling into the abyss.`)
-
+	displayCaption(`In total, ${sandCount} sand settled before falling into the abyss.`);
+	sandCount = 0;
+	lowestY += 2;
+	while(!fall(filledCopy, true)) {
+		console.log(`Best hurry. Sand ${sandCount}.`);
+	}
+	displayCaption(`Now that conservation of mass isn't being violated, ${sandCount} sand settled.`);
 }
