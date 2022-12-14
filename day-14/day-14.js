@@ -111,7 +111,9 @@ function day14(input) {
 	for(let y = minY; y <= maxY; y++) {
 		let displayLine = "";
 		for(let x = minX; x <= maxX; x++) {
-			if(filledCopyCopy.has(`${x},${y}`)) {
+			if(x === 500 && y === 0) {
+				displayLine += "+";
+			} else if(filledCopyCopy.has(`${x},${y}`)) {
 				displayLine += "█";
 			} else if(filledPoints.has(`${x},${y}`)) {
 				displayLine += "░";
