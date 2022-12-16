@@ -1,16 +1,6 @@
 "use strict";
 
 function day16(input) {
-// 	input = `Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-// Valve BB has flow rate=13; tunnels lead to valves CC, AA
-// Valve CC has flow rate=2; tunnels lead to valves DD, BB
-// Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
-// Valve EE has flow rate=3; tunnels lead to valves FF, DD
-// Valve FF has flow rate=0; tunnels lead to valves EE, GG
-// Valve GG has flow rate=0; tunnels lead to valves FF, HH
-// Valve HH has flow rate=22; tunnel leads to valve GG
-// Valve II has flow rate=0; tunnels lead to valves AA, JJ
-// Valve JJ has flow rate=21; tunnel leads to valve II`;
 	const FILE_REGEX = /Valve ([A-Z][A-Z]) has flow rate=(\d+); tunnels? leads? to valves? ((?:[A-Z][A-Z],? ?)+)/g;
 	let valves = [];
 	let entry;
@@ -116,10 +106,37 @@ function day16(input) {
 			BFS(valve);
 		}
 	}
-
 	BFS(AA);
+	targets.sort((a, b) => b.flowRate - a.flowRate);
 
-	console.log(valves);
+	function Opener(name, currPos) {
+		this.name = name;
+		this.currPos = currPos;
+		this.timeLeft = 26;
+		this.totalFlow = 0;
+
+		this.openValve = function() {
+			this.timeLeft--;
+			this.totalFlow += this.timeLeft * this.currPos.flowRate;
+			this.currPos = this.currPos.copy();
+			this.currPos.isOpen = true;
+			return `t = ${26 - this.timeLeft}: ${this.name} opened valve ${this.currPos.name}, releasing ${this.currPos.flowRate} * ${this.timeLeft} = ${this.timeLeft * this.currPos.flowRate} flow.`;
+		}
+
+		this.move = function(target) {
+			this.timeLeft -= this.currPos.targetDepths.get(target.name);
+			this.currPos = target.copy();
+			return this;
+		}
+
+		this.copy = function() {
+			let newOpener = new Opener(this.name, this.currPos.copy());
+			newOpener.timeLeft = this.timeLeft;
+			newOpener.totalFlow = this.totalFlow;
+			return newOpener;
+		}
+	}
+
 
 	function openValves(valves, targets, timeLeft, totalFlow, currPos) {
 		if(timeLeft === 0) return totalFlow;
@@ -151,7 +168,92 @@ function day16(input) {
 		return Math.max(...candidateMoves, totalFlow);
 	}
 
-	let maxFlow = openValves(valves, targets, 30, 0, AA);
-	console.log(`Done`);
+	function openValves2(targets, timeLeft, you, elephant) {
+		if(timeLeft === 0) return [you.totalFlow + elephant.totalFlow, []];
+		//console.log(`${currPos.name},${timeLeft}`);
+		//console.log(targets.length);
+		let candidateMoves = [];
+		let valveStuff = [];
+		if(you.timeLeft === timeLeft && !you.currPos.isOpen && you.currPos.isTarget) {
+			valveStuff.push(you.openValve());
+		}
+		if(elephant.timeLeft === timeLeft && !elephant.currPos.isOpen && elephant.currPos.isTarget) {
+			valveStuff.push(elephant.openValve());
+		}
+
+		let currRecord = 0;
+
+		let youBestCase = you.totalFlow + elephant.totalFlow;
+		let youValidTargets = [];
+		for(let target of targets) {
+			if(target.name === you.currPos.name) continue;
+			if(timeLeft < you.currPos.targetDepths.get(target.name)) continue;
+			youBestCase += timeLeft * target.flowRate;
+			youValidTargets.push(target);
+		}
+		let elephantBestCase = you.totalFlow + elephant.totalFlow;
+		let elephantValidTargets = [];
+		for(let target of targets) {
+			if(target.name === elephant.currPos.name) continue;
+			if(timeLeft < elephant.currPos.targetDepths.get(target.name)) continue;
+			elephantBestCase += timeLeft * target.flowRate;
+			elephantValidTargets.push(target);
+		}
+		if(youValidTargets.length !== 0 && currRecord <= youBestCase && you.timeLeft === timeLeft) {
+			// We need to pick a new destination for you.
+			for(let target of youValidTargets) {
+				let newTargets = [];
+				for(let othTarget of youValidTargets) {
+					if(othTarget.name !== target.name) {
+						newTargets.push(othTarget);
+					}
+				}
+				let [nextMove, record] = openValves2(newTargets, timeLeft, you.copy().move(target), elephant.copy());
+				record.unshift(`t = ${26 - timeLeft + 1}: You move to ${target.name}`);
+				candidateMoves.push([nextMove, record]);
+				if(nextMove > currRecord) currRecord = nextMove;
+			}
+		} else if(elephantValidTargets.length !== 0 && currRecord <= elephantBestCase && elephant.timeLeft === timeLeft) {
+			for(let target of elephantValidTargets) {
+				let newTargets = [];
+				for(let othTarget of elephantValidTargets) {
+					if(othTarget.name !== target.name) {
+						newTargets.push(othTarget);
+					}
+				}
+				let [nextMove, record] = openValves2(newTargets, timeLeft, you.copy(), elephant.copy().move(target));
+				record.unshift(`t = ${26 - timeLeft + 1}: Elephant moves to ${target.name}`);
+				candidateMoves.push([nextMove, record]);
+				if(nextMove > currRecord) currRecord = nextMove;
+			}
+		} else {
+			candidateMoves.push(openValves2(targets, timeLeft - 1, you.copy(), elephant.copy()));
+		}
+		let max = you.totalFlow + elephant.totalFlow;
+		let maxMove = ["Nothing else happens after this."];
+		for(let move of candidateMoves) {
+			if(move[0] > max) {
+				max = move[0];
+				maxMove = move[1];
+			}
+		}
+		for(let valveS of valveStuff) {
+			maxMove.unshift(valveS);
+		}
+		return [max, maxMove];
+	}
+
+
+	let maxFlow = openValves(deepCopy(valves), deepCopy(targets), 30, 0, AA);
+	let you = new Opener("You", AA);
+	let elephant = new Opener("Elephant", AA);
+	console.time(`part 2`);
+	let [maxFlow2, maxMove] = openValves2(targets, 26, you, elephant);
+	console.timeEnd(`part 2`);
 	displayCaption(`The max flow is ${maxFlow}.`);
+	displayCaption(`The elephant makes the max flow ${maxFlow2}.`);
+	displayCaption(`The optimal path is displayed.`);
+	for(let move of maxMove) {
+		displayText(move);
+	}
 }
