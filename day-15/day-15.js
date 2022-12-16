@@ -1,20 +1,6 @@
 "use strict";
 
 function day15(input) {
-// 	input = `Sensor at x=2, y=18: closest beacon is at x=-2, y=15
-// Sensor at x=9, y=16: closest beacon is at x=10, y=16
-// Sensor at x=13, y=2: closest beacon is at x=15, y=3
-// Sensor at x=12, y=14: closest beacon is at x=10, y=16
-// Sensor at x=10, y=20: closest beacon is at x=10, y=16
-// Sensor at x=14, y=17: closest beacon is at x=10, y=16
-// Sensor at x=8, y=7: closest beacon is at x=2, y=10
-// Sensor at x=2, y=0: closest beacon is at x=2, y=10
-// Sensor at x=0, y=11: closest beacon is at x=2, y=10
-// Sensor at x=20, y=14: closest beacon is at x=25, y=17
-// Sensor at x=17, y=20: closest beacon is at x=21, y=22
-// Sensor at x=16, y=7: closest beacon is at x=15, y=3
-// Sensor at x=14, y=3: closest beacon is at x=15, y=3
-// Sensor at x=20, y=1: closest beacon is at x=15, y=3`;
 	const FILE_REGEX = /Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)/g;
 	let sensors = [];
 	let entry;
@@ -31,7 +17,6 @@ function day15(input) {
 			maxX = +entry[1] + sensors[sensors.length - 1].closeDistance;
 		}
 	}
-	console.log(sensors);
 
 	function manhattan(pos1, pos2) {
 		return Math.abs(pos1[0] - pos2[0]) + Math.abs(pos1[1] - pos2[1]);
@@ -43,7 +28,6 @@ function day15(input) {
 		this.closeDistance = manhattan(this.pos, this.closeBeacon);
 		this.boundingBox = [[this.pos[0] - this.closeDistance, this.pos[1] - this.closeDistance], 
 							[this.pos[0] + this.closeDistance, this.pos[1] + this.closeDistance]];
-		this.memoCandidates;
 
 		this.testBeaconFails = function(potLocation) {
 			// Returns true if the beacon is inside the range.
@@ -53,10 +37,6 @@ function day15(input) {
 		this.couldBeDisBeacon = function(disBeaPos) {
 			// Suppose the previous disBeaPos was not the distress beacon.
 			// Now, what about the new disBeaPos?
-			if(disBeaPos[0] === 2 && disBeaPos[1] === 11) {
-				console.log(this.pos);
-			}
-			return !this.testBeaconFails(disBeaPos);
 			if(disBeaPos[0] < this.boundingBox[0][0] ||
 			   disBeaPos[0] > this.boundingBox[1][0] ||
 			   disBeaPos[1] < this.boundingBox[0][1] ||
@@ -69,23 +49,7 @@ function day15(input) {
 			}
 		}
 
-		this.getCandidates = function() {
-			if(this.memoCandidates !== undefined) return this.memoCandidates;
-			let candidates = new Set();
-			let offset = this.closeDistance + 1;
-			for(let upOffset = offset; upOffset >= -offset; upOffset++) {
-				let rightOffset = offset - upOffset;
-				candidates.add([this.pos[0] + rightOffset, this.pos[1] + upOffset]);
-				candidates.add([this.pos[0] - rightOffset, this.pos[1] + upOffset]);
-				candidates.add([this.pos[0] + rightOffset, this.pos[1] - upOffset]);
-				candidates.add([this.pos[0] - rightOffset, this.pos[1] - upOffset]);
-			}
-			this.memoCandidates = candidates;
-			return candidates;
-		}
-
 		this.intersection = function(...otherSensors) {
-			console.log(`Starting...`);
 			let candidates = new Set();
 			let othSensor = otherSensors[0];
 			let dirX = Math.sign(othSensor.pos[0] - this.pos[0]);
@@ -221,30 +185,10 @@ function day15(input) {
 			}
 
 			for(let point of candidates) {
-				if(point.includes(".")) {
+				if(point.includes(".")) { // No decimals allowed.
 					candidates.delete(point);
 				}
 			}
-
-			// for(let x = Math.min(othSensor.pos[0], this.pos[0]); x <= Math.max(othSensor.pos[0], this.pos[0]); x++) {
-			// 	for(let y = Math.min(othSensor.pos[1], this.pos[1]); y <= Math.max(othSensor.pos[1], this.pos[1]); y++) {
-			// 		if(manhattan([x, y], this.pos) === this.closeDistance + 1 && manhattan([x, y], othSensor.pos)) {
-			// 			candidates.add(`${x},${y}`);
-			// 		}
-			// 	}
-			// }
-			// for(let point of candidates) {
-			// 	console.log(point);
-			// }
-			// for(let othSensor of otherSensors) {
-			// 	let intersections = new Set();
-			// 	for(let point of candidates) {
-			// 		if(manhattan(point, othSensor.pos) === othSensor.closeDistance + 1) {
-			// 			intersections.add(point);
-			// 		}
-			// 	}
-			// 	candidates = intersections;
-			// }
 			return candidates;
 		}
 	}
@@ -272,6 +216,7 @@ function day15(input) {
 
 	const TRIAL_LINE = 2000000;
 	let impossibleCount = 0;
+	console.time(`part1`);
 	for(let x = minX; x <= maxX; x++) {
 		if(sensors.some(sensor => sensor.testBeaconFails([x, TRIAL_LINE]))) {
 			if(!beacons.has(`${x},${TRIAL_LINE}`)) {
@@ -279,63 +224,32 @@ function day15(input) {
 			}
 		}
 	}
+	console.timeEnd(`part1`);
 
+	console.time(`part2`);
 	let trueDisBeaPos = [0, 0];
-	// function updatePosX() {
-	// 	if(disBeaPos[0] === 4000000) {
-	// 		disBeaPos[0] = 0;
-	// 		return updatePosY();
-	// 	} else {
-	// 		disBeaPos[0]++;
-	// 		if(sensors.every(sensor => sensor.couldBeDisBeacon())) {
-	// 			displayCaption(`We're done here! Distress beacon at ${disBeaPos}!`);
-	// 			return true;
-	// 		}
-	// 	}
-	// }
-
-	// function updatePosY() {
-	// 	disBeaPos[1]++;
-	// 	if(sensors.every(sensor => sensor.couldBeDisBeacon())) {
-	// 		displayCaption(`We're done here! Distress beacon at ${disBeaPos}!`);
-	// 		return true;
-	// 	}
-	// }
-
-	// while(!updatePosX()) {
-	// 	if(disBeaPos[0] % 100000 === 0) {
-	// 		console.log(`Done with ${disBeaPos}.`);
-	// 	}
-	// }
-
-	let disBeaCandidates = new Map();
-	let sensorWorkers = [];
-	let finalResults = [];
 	try {
 		for(let i = 0; i < sensors.length; i++) {
 			for(let j = i + 1; j < sensors.length; j++) {
-				//for(let k = j + 1; k < sensors.length; k++) {
-					let sensor1 = sensors[i];
-					let sensor2 = sensors[j];
-					//let sensor3 = sensors[k];
-					if(intersectionPossible(sensor1, sensor2/*, sensor3*/)) {
-						let possible = sensor1.intersection(sensor2/*, sensor3*/);
-						if(possible.size !== 0) {
-							for(let pos of possible) {
-								let testPos = pos.split(",");
-								testPos[0] = +testPos[0];
-								testPos[1] = +testPos[1];
-								if(sensors.every(sensor => sensor.couldBeDisBeacon(testPos))) {
-									if(testPos[0] >= 0 && testPos[0] <= 4000000 &&
-									   testPos[1] >= 0 && testPos[1] <= 4000000) {
-										trueDisBeaPos = testPos;
-										throw "Done here";
-									}
+				let sensor1 = sensors[i];
+				let sensor2 = sensors[j];
+				if(intersectionPossible(sensor1, sensor2)) {
+					let possible = sensor1.intersection(sensor2);
+					if(possible.size !== 0) {
+						for(let pos of possible) {
+							let testPos = pos.split(",");
+							testPos[0] = +testPos[0];
+							testPos[1] = +testPos[1];
+							if(sensors.every(sensor => sensor.couldBeDisBeacon(testPos))) {
+								if(testPos[0] >= 0 && testPos[0] <= 4000000 &&
+								   testPos[1] >= 0 && testPos[1] <= 4000000) {
+									trueDisBeaPos = testPos;
+									throw "Done here";
 								}
 							}
 						}
 					}
-				//}
+				}
 			}
 		}
 	} catch (e) {
@@ -343,6 +257,7 @@ function day15(input) {
 			throw e;
 		}
 	}
+	console.timeEnd(`part2`);
 
 
 
