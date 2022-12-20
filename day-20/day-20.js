@@ -1,18 +1,13 @@
 "use strict";
 
 function day20(input) {
-// 	input = `1
-// 2
-// -3
-// 3
-// -2
-// 0
-// 4`;
 	const FILE_REGEX = /-?\d+/g;
 	let numbers = [];
+	let numbers2 = [];
 	let entry;
 	while(entry = FILE_REGEX.exec(input)) {
 		numbers.push(new CircularNode(+entry[0]));
+		numbers2.push(new CircularNode(+entry[0] * 811589153));
 	}
 
 	for(let i = 0; i < numbers.length; i++) {
@@ -28,12 +23,22 @@ function day20(input) {
 		}
 	}
 
+	for(let i = 0; i < numbers2.length; i++) {
+		if(i === 0) {
+			numbers2[i].next = numbers2[i + 1];
+			numbers2[i].prev = numbers2[numbers2.length - 1];
+		} else if(i === numbers2.length - 1) {
+			numbers2[i].next = numbers2[0];
+			numbers2[i].prev = numbers2[i - 1];
+		} else {
+			numbers2[i].next = numbers2[i + 1];
+			numbers2[i].prev = numbers2[i - 1];
+		}
+	}
 
-	let order = numbers.slice();
-
-	function findNumber(num) {
-		for(let i = 0; i < numbers.length; i++) {
-			if(numbers[i].value === num) return numbers[i];
+	function findNumber(num, which = numbers) {
+		for(let i = 0; i < which.length; i++) {
+			if(which[i].value === num) return which[i];
 		}
 	}
 
@@ -42,7 +47,7 @@ function day20(input) {
 		this.next;
 		this.value = value;
 
-		this.move = function() {
+		this.move = function(which = numbers) {
 			if(this.value < 0) {
 				// finalPrev: the node BEFORE WHICH to place this node.
 				let currNext = this.next;
@@ -50,7 +55,7 @@ function day20(input) {
 				currNext.prev = currPrev;
 				currPrev.next = currNext;
 				let finalPrev = this.prev;
-				for(let i = -1; i > this.value; i--) {
+				for(let i = 1; i < Math.abs(this.value) % (which.length - 1); i++) {
 					finalPrev = finalPrev.prev;
 				}
 				let prevPrev = finalPrev.prev;
@@ -65,7 +70,7 @@ function day20(input) {
 				currNext.prev = currPrev;
 				currPrev.next = currNext;
 				let finalNext = this.next;
-				for(let i = 1; i < this.value; i++) {
+				for(let i = 1; i < this.value % (which.length - 1); i++) {
 					finalNext = finalNext.next;
 				}
 				let nextNext = finalNext.next;
@@ -77,16 +82,14 @@ function day20(input) {
 		}
 	}
 
-	//console.log(`Now it's ${numbers.join()}`);
-	for(let num of order) {
+	for(let num of numbers) {
 		num.move();
-		// let display = num.value + ",";
-		// let theNext = num.next;
-		// while(theNext !== num) {
-		// 	display += theNext.value + ",";
-		// 	theNext = theNext.next;
-		// }
-		// console.log(display);
+	}
+
+	for(let i = 0; i < 10; i++) {
+		for(let num of numbers2) {
+			num.move();
+		}
 	}
 
 	let currNode = findNumber(0);
@@ -99,5 +102,17 @@ function day20(input) {
 		if(i === 2000) node2000 = currNode;
 		if(i === 3000) node3000 = currNode;
 	}
+
+	let currNode2 = findNumber(0, numbers2);
+	let node1000two;
+	let node2000two;
+	let node3000two;
+	for(let i = 1; i <= 3000; i++) {
+		currNode2 = currNode2.next;
+		if(i === 1000) node1000two = currNode2;
+		if(i === 2000) node2000two = currNode2;
+		if(i === 3000) node3000two = currNode2;
+	}
 	displayCaption(`The sum is ${node1000.value + node2000.value + node3000.value}.`);
+	displayCaption(`The REAL sum is ${node1000two.value + node2000two.value + node3000two.value}.`);
 }
