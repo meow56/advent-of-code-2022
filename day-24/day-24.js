@@ -284,7 +284,7 @@ function day24(input) {
 			this.neighbors.push(nextPos);
 		}
 		nextPos = [this.pos[0], this.pos[1] + 1];
-		if(rows[nextPos[1]][nextPos[0]] !== "#" && !this.bst.search(nextPos)) {
+		if(nextPos[1] < maxY + 1 && rows[nextPos[1]][nextPos[0]] !== "#" && !this.bst.search(nextPos)) {
 			this.neighbors.push(nextPos);
 		}
 		nextPos = [this.pos[0] - 1, this.pos[1]];
@@ -309,9 +309,9 @@ function day24(input) {
 		}
 	}
 
-	function BFS() {
-
-		let queue = [tiles[0]];
+	function BFS(start = tiles[0], goal = [maxX, maxY]) {
+		tiles = [start];
+		let queue = [start];
 		while(queue.length !== 0) {
 			let next = queue.shift();
 			if(isEqual(next.pos, goal)) return next.time + 1;
@@ -323,7 +323,11 @@ function day24(input) {
 			}
 		}
 	}
-	displayCaption(`The shortest time is ${BFS()}.`);
+	let part1 = BFS();
+	displayCaption(`The shortest time is ${part1}.`);
+	let waitGoBack = BFS(new TileNode([maxX, maxY + 1], part1), [minX, minY]);
+	let iSaidGoBack = BFS(new TileNode([minX, minY - 1], waitGoBack));
+	displayCaption(`The big time is ${iSaidGoBack}.`);
 
 
 
