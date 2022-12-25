@@ -49,7 +49,7 @@ function blockClosure() {
 		let NEW_PRE = document.createElement("PRE");
 		NEW_PRE.id = id;
 		NEW_PRE.displayText = function(text = "") {
-			this.textContent += text + "\n";
+			this.innerHTML += text + "\n";
 		}.bind(NEW_PRE);
 		NEW_PRE.clearText = function() {
 			this.textContent = "";

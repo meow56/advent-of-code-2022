@@ -20,14 +20,35 @@ function day25(input) {
 		return sum;
 	}
 
+	let interResults = ["0"];
 	let totalSum = "0";
 	for(let num of numbers) {
 		totalSum = add(totalSum, num);
 	}
 	displayCaption(`The sum is ${totalSum} (${parseNum(totalSum)}).`);
-	function reverseParse(number) {
 
+	let merryChristmas = assignBlock("Christmas");
+	let sumStuff = assignBlock("sum");
+
+	merryChristmas.style = 'background-color: black;';
+	let offset = 0;
+	function christmas() {
+		let text = "Merry Christmas!".split("");
+		for(let i = 0; i < text.length; i++) {
+			if((i + offset) % 3 === 0) {
+				text[i] = `<span class='text-red'>${text[i]}</span>`;
+			} else if((i + offset) % 3 === 1) {
+				text[i] = `<span class='text-green'>${text[i]}</span>`;
+			} else {
+				text[i] = `<span class='text-white'>${text[i]}</span>`;
+			}
+		}
+		merryChristmas.clearText();
+		merryChristmas.displayText(text.join(""));
+		offset++;
 	}
+	setInterval(christmas, 500);
+
 
 	function add(num1, num2) {
 		let maxLength = Math.max(num1.length, num2.length);
@@ -75,6 +96,20 @@ function day25(input) {
 			else if(digit === -1) trueFinale += "-";
 			else trueFinale += "=";
 		}
+		interResults.push(trueFinale);
 		return trueFinale;
 	}
+
+	function display() {
+		let maxLength = Math.max(...(interResults.map((elem) => elem.length)));
+		for(let i = 0; i < interResults.length; i++) {
+			let res = interResults[i];
+			sumStuff.displayText(res.padStart(maxLength) + ` (${parseNum(res)})`);
+			if(i === interResults.length - 1) break;
+			sumStuff.displayText(numbers[i].padStart(maxLength) + ` (${parseNum(numbers[i])})`);
+			sumStuff.displayText("-".repeat(maxLength));
+		}
+	}
+
+	display();
 }
